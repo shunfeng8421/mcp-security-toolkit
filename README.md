@@ -43,6 +43,8 @@ Declarative, mechanically-enforced verification gates for confirmed bug claims �
 
 **Four families**: `http_chain` (stateful multi-step chain with conditional steps + cross-step `@{var}` binding) · `http_simple` (single request) · `compute` (command → parse → threshold) · `file_assert` (command → parse → assertion, e.g. Lean axiom audit).
 
+The compute family ships a **real AlphaFold2-multimer runner** (`vgate/protein_runner.py`) that turns a binder→target ipTM prediction into a machine-parseable line, wired to the worked spec `vgate/specs/v-compute-multimer.json`. A `--dry-run` mode emits a plausible log so the gate logic validates on machines without a free GPU (regression T10/T11).
+
 **Tier semantics**: `sound` × pass = confirmed · `statistical` × pass = evidence · `none` = engine does NOT run (unverified) · `ceiling` is required unless sound (states what the check does NOT establish). Verdict is gated on mechanical oracle output, never on an agent's self-report.
 
 ```

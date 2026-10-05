@@ -117,6 +117,22 @@ check("T8 compute negative -> rejected", '"rejected"' in out, f"(rc={rc})")
 rc, out = run_spec(os.path.join(ROOT, "specs", "v-file-assert-clean.json"), True)
 check("T9 file_assert clean -> confirmed", '"confirmed"' in out, f"(rc={rc})")
 
+# T10 compute multimer 真实wrapper 正样本 (ipTM 0.63 >= 0.5, dry-run 无需GPU) -> confirmed
+rc, out = run_spec(os.path.join(ROOT, "specs", "v-compute-multimer.json"), True)
+check("T10 compute multimer real-wrapper positive -> confirmed", '"confirmed"' in out, f"(rc={rc})")
+
+# T11 compute multimer 负样本 (ipTM 0.30 < 0.5, dry-run) -> rejected
+import json as _json
+_spec = _json.load(open(os.path.join(ROOT, "specs", "v-compute-multimer.json"), encoding="utf-8"))
+_spec["id"] = "v-compute-multimer-below"
+_spec["oracle"]["command"] = _spec["oracle"]["command"].replace("--fake-iptm 0.63", "--fake-iptm 0.30")
+_t11 = os.path.join(ROOT, "specs", "_multimer_below.json")
+open(_t11, "w", encoding="utf-8").write(_json.dumps(_spec))
+rc, out = run_spec(_t11, True)
+os.remove(_t11)
+check("T11 compute multimer negative -> rejected", '"rejected"' in out, f"(rc={rc})")
+
+
 print()
 fails = [n for n, ok, _ in results if not ok]
 print(f"{len(results)-len(fails)}/{len(results)} passed" + (f"; FAILED: {fails}" if fails else ""))

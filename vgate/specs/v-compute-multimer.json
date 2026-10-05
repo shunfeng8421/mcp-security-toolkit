@@ -1,0 +1,23 @@
+{
+  "schemaVersion": "1.0.0",
+  "id": "v-compute-multimer",
+  "title": "compute: real AlphaFold2-multimer ipTM >= 0.5 for binder vs target (Challenge 2 gate)",
+  "claim": "A designed binder achieves predicted ipTM >= 0.5 against the target (multimer v3, single-sequence MSA).",
+  "family": "compute",
+  "soundness": "statistical",
+  "ceiling": "ipTM is an in-silico prediction, NOT a wet-lab binding result. It does not establish folding, solubility, or on-target binding in the lab. Does not compare track/selection standing.",
+  "oracle": {
+    "mode": "command",
+    "command": "python I:/research/xros-study/vgate/protein_runner.py I:/research/xros-study/vgate/specs/fixtures/binders-test.fa I:/research/xros-study/vgate/specs/fixtures/egfr-target.fa I:/research/xros-study/vgate/specs/_multimer_out --dry-run --fake-iptm 0.63",
+    "parse": "ipTM=([0-9.]+)"
+  },
+  "pass": {
+    "mode": "threshold",
+    "threshold": 0.5
+  },
+  "provenance": {
+    "from": "challenge-2 multimer prescreen pipeline",
+    "scanner_seed": false,
+    "notes": "dry-run mode validates the gate with bounding logic; swap to real mode (no --dry-run) only when factory has yielded the GPU."
+  }
+}
