@@ -1,0 +1,17 @@
+{
+  "schemaVersion": "1.0.0",
+  "id": "v-compute-sample",
+  "title": "compute family: numeric threshold gate (simulated metric)",
+  "claim": "A simulated measurement pipeline returns a metric >= 0.5 (gate: parsed value meets threshold).",
+  "family": "compute",
+  "soundness": "statistical",
+  "ceiling": "Statistical evidence, not proof: a passing simulated metric does not establish real-world binding.",
+  "isolation": "none",
+  "cost": { "budget": "1 command", "gated": true, "timeoutMs": 10000 },
+  "oracle": {
+    "mode": "command",
+    "command": "python -c \"print('metric = 0.73')\"",
+    "parse": "metric = ([0-9.]+)"
+  },
+  "pass": { "mode": "threshold", "threshold": 0.5 }
+}

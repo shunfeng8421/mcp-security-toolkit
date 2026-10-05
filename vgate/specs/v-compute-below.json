@@ -1,0 +1,17 @@
+{
+  "schemaVersion": "1.0.0",
+  "id": "v-compute-below",
+  "title": "compute family NEGATIVE: metric below threshold (must be evidence-False -> rejected)",
+  "claim": "Simulated metric is 0.3, threshold 0.5 -> gate must NOT confirm.",
+  "family": "compute",
+  "soundness": "statistical",
+  "ceiling": "Statistical evidence, not proof.",
+  "isolation": "none",
+  "cost": { "budget": "1 command", "gated": true, "timeoutMs": 10000 },
+  "oracle": {
+    "mode": "command",
+    "command": "python -c \"print('metric = 0.30')\"",
+    "parse": "metric = ([0-9.]+)"
+  },
+  "pass": { "mode": "threshold", "threshold": 0.5 }
+}

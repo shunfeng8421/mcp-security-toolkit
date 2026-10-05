@@ -1,0 +1,23 @@
+[
+  {
+    "name": "evil-mcp-shell",
+    "title": "unauthenticated command injection",
+    "signal": "command-injection-rce",
+    "path": "src/server.py:42",
+    "signature": "shell=True + f-string"
+  },
+  {
+    "name": "rogue-gateway",
+    "title": "unauthenticated control surface",
+    "signal": "no-auth",
+    "path": "app/main.py:10",
+    "signature": "no Depends on /api/*"
+  },
+  {
+    "name": "sql-mcp",
+    "title": "read-only gate bypass",
+    "signal": "sql-readonly-bypass",
+    "path": "tools/query.py:7",
+    "signature": "startswith SELECT + writable conn"
+  }
+]

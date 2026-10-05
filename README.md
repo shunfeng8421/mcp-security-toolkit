@@ -31,6 +31,25 @@ All patterns below were discovered and **runtime-confirmed** against real, isola
 
 ---
 
+
+## Verification gate engine (vgate)
+
+Declarative, mechanically-enforced verification gates for confirmed bug claims — the "no verification, no claim" discipline made executable. Modeled on the verification core of Xiaolai's **xros** (Apache-2.0 validator engine) and adapted to security/agent workloads.
+
+- `vgate/vgate.py` — run a spec through validate → execute-oracle → gate (verdict: confirmed / evidence / candidate / rejected / unverified)
+- `vgate/specs/` — vgate-spec schema + worked specs (http_chain AEG RCE / http_simple sandbox / compute / file_assert)
+- `vgate/bridge.py` — scaffold a scanner candidate list into fillable spec skeletons
+- `vgate/tests/run_tests.py` — regression suite (skips HTTP tests when its service is down, never misfails)
+
+**Four families**: `http_chain` (stateful multi-step chain with conditional steps + cross-step `@{var}` binding) · `http_simple` (single request) · `compute` (command → parse → threshold) · `file_assert` (command → parse → assertion, e.g. Lean axiom audit).
+
+**Tier semantics**: `sound` × pass = confirmed · `statistical` × pass = evidence · `none` = engine does NOT run (unverified) · `ceiling` is required unless sound (states what the check does NOT establish). Verdict is gated on mechanical oracle output, never on an agent's self-report.
+
+```
+python3 vgate/vgate.py vgate/specs/v-asr.json --exec   # validate + run against a live loopback service
+```
+
+
 ## Grading philosophy (honest, reproducible)
 1. **Do not** report a finding without runtime confirmation on an isolated loopback instance.
 2. **Separate** *vulnerable* (sloppy gate / no auth / no escaping) from *hardened* (AST parse / connection read-only / allowlist / token gate / fail-closed).

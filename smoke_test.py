@@ -24,6 +24,12 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 ABSPATH = re.compile(r"[A-Za-z]:/|/(?:i|d|mnt|home)/")
 TOOLS = [f for f in sorted(os.listdir(HERE)) if f.endswith(".py") and f != "smoke_test.py"]
 
+# vgate submodule: every .py must be syntax-valid (it is the verification engine)
+VGATE_SUB = os.path.join(HERE, "vgate")
+VGATE_FILES = []
+if os.path.isdir(VGATE_SUB):
+    VGATE_FILES = [os.path.join(VGATE_SUB, f) for f in sorted(os.listdir(VGATE_SUB)) if f.endswith(".py")]
+
 def is_portable(path):
     """True when the tool has no machine-specific absolute path -> runnable anywhere."""
     with open(path, encoding="utf-8") as fh:
@@ -31,6 +37,14 @@ def is_portable(path):
 
 failed = []
 portable = 0
+# syntax-check vgate engine files (they must parse in CI even if they need a live service to run)
+for vp in VGATE_FILES:
+    try:
+        with open(vp, "r", encoding="utf-8") as fh:
+            ast.parse(fh.read(), filename=vp)
+    except (SyntaxError, UnicodeDecodeError) as e:
+        failed.append((os.path.basename(vp), f"vgate syntax/parse: {e}"))
+
 for t in TOOLS:
     p = os.path.join(HERE, t)
     try:

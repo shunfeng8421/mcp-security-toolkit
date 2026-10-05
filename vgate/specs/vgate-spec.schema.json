@@ -1,0 +1,89 @@
+{
+  "$schema": "https://example.org/vgate/vgate-spec.schema.json",
+  "$id": "https://example.org/vgate/vgate-spec.schema.json",
+  "title": "VGATE Verification Gate Spec",
+  "description": "A declarative verification-gate contract. The oracle is the external mechanical gate that turns 'assume a claim' into 'verified' (or explicitly not). gate() evaluates the oracle result deterministically: sound x pass = confirmed, statistical x pass = evidence, any x fail = rejected, none = unverified (engine must not run).",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "id", "title", "claim", "family", "soundness", "oracle", "pass"],
+  "properties": {
+    "schemaVersion": { "type": "string", "const": "1.0.0" },
+    "provenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Optional audit provenance: where this candidate/spec came from.",
+      "properties": {
+        "from": { "type": "string" },
+        "scanner_seed": { "type": "boolean" },
+        "repo": { "type": "string" },
+        "notes": { "type": "string" }
+      }
+    },
+    "id": { "type": "string", "pattern": "^v-[a-z0-9][a-z0-9-]{1,63}$" },
+    "title": { "type": "string", "minLength": 1 },
+    "claim": { "type": "string", "minLength": 1, "description": "The single, fully-quantified claim this gate verifies." },
+    "family": {
+      "type": "string",
+      "enum": ["http_chain", "http_simple", "compute", "file_assert"],
+      "description": "Which runner executes the oracle."
+    },
+    "soundness": {
+      "type": "string",
+      "enum": ["sound", "statistical", "none"],
+      "description": "Does passing establish the claim? sound = yes within its stated scope (real effect, mechanical check). statistical = evidence only (prediction, backtest). none = no mechanical oracle (engine must NOT run, verdict unverified)."
+    },
+    "ceiling": {
+      "type": "string",
+      "pattern": "[^ ][\\s\\S]*",
+      "description": "WHAT PASSING THIS CHECK DOES NOT ESTABLISH. REQUIRED when soundness is statistical or none, because 'best available' must never be read as 'good enough'."
+    },
+    "isolation": {
+      "type": "string",
+      "enum": ["loopback", "tempdir", "none"],
+      "default": "loopback"
+    },
+    "base": {
+      "type": "string",
+      "pattern": "https?://",
+      "description": "Base URL for http_chain/http_simple oracles (loopback default 127.0.0.1)."
+    },
+    "cost": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "budget": { "type": "string" },
+        "gated": { "type": "boolean", "default": true, "description": "If true, require explicit approval before running the oracle." },
+        "timeoutMs": { "type": "integer", "minimum": 1 }
+      }
+    },
+    "oracle": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["mode"],
+      "description": "The external mechanical check, expressed per family.",
+      "properties": {
+        "mode": { "type": "string", "enum": ["steps", "request", "command", "file"] },
+        "steps": { "type": "array", "description": "http_chain: stateful ordered steps with variable binding. Each step may carry 'request', 'expect', 'save', 'cond' (conditional).", "items": { "type": "object" } },
+        "request": { "type": "object", "description": "http_simple: single request spec {method, path, body, expect}." },
+        "command": { "type": "string", "description": "compute/file_assert: shell command to run (oracle)." },
+        "parse": { "type": "string", "description": "compute/file_assert: how to parse the command output (regex or key)." },
+        "path": { "type": "string", "description": "file_assert: artifact path (relative, no traversal)." },
+        "evidence": { "type": "string", "description": "The success predicate (e.g. '__MARKER__ in {stdout}')." },
+        "markers": { "type": "object", "description": "http_chain: named partial-confirmation booleans for multi-step chains." }
+      }
+    },
+    "pass": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["mode"],
+      "properties": {
+        "mode": { "type": "string", "enum": ["exit", "assert", "threshold", "chain"] },
+        "exitCodes": { "type": "array", "items": { "type": "integer" }, "default": [0] },
+        "stdoutContains": { "type": "array", "items": { "type": "string" } },
+        "stdoutAbsent": { "type": "array", "items": { "type": "string" } },
+        "assert": { "type": "string", "description": "Predicate over parsed result (e.g. 'axioms subset allowed')." },
+        "threshold": { "type": "number", "description": "compute: numeric threshold for parsed value." }
+      }
+    }
+  }
+}

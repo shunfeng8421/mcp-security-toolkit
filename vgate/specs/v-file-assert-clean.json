@@ -1,0 +1,18 @@
+{
+  "schemaVersion": "1.0.0",
+  "id": "v-file-assert-clean",
+  "title": "file_assert family: axioms only from allowed set (simulated lean check, POSITIVE)",
+  "claim": "The checked artifact depends only on allowed axioms {propext, classical.choice, quotient.sound} -> clean proof.",
+  "family": "file_assert",
+  "soundness": "sound",
+  "ceiling": "Sound for the stated artifact; does not establish the mathematical truth of the theorem itself, only that the proof uses only standard axioms.",
+  "isolation": "tempdir",
+  "cost": { "budget": "1 check", "gated": true, "timeoutMs": 10000 },
+  "oracle": {
+    "mode": "file",
+    "command": "python -c \"print('depends on axioms: propext, classical.choice')\"",
+    "parse": "depends on axioms: ([^\\]]*)",
+    "path": "sample.lean"
+  },
+  "pass": { "mode": "assert", "assert": "propext; classical.choice; quotient.sound" }
+}
