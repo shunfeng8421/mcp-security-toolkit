@@ -1,0 +1,30 @@
+{
+  "schemaVersion": "1.0.0",
+  "id": "v-cloudpilot-failopen",
+  "title": "cloudpilot-ai-aws-services: fail-open auth (API_KEY unset -> /api/chat & /api/approve open)",
+  "claim": "When CLOUDPILOT_API_KEY is unset, authenticate_request returns True for every request, so /api/chat and /api/approve (which gate destructive AWS actions terminate_ec2/delete_rds/delete_lambda) are reachable without any credential.",
+  "family": "http_simple",
+  "soundness": "sound",
+  "ceiling": "Source-confirmed from code (web.py L88 `if not API_KEY: return True`; L1058/L1100 call it). Runtime loopback verification pending: needs boto3 env + service start. README default binds 127.0.0.1 (loopback, NOT remote). Impact = local reach + default creds admin/cloudpilot123 if env unset.",
+  "base": "http://127.0.0.1:8000",
+  "oracle": {
+    "mode": "request",
+    "request": {
+      "method": "POST",
+      "path": "/api/chat",
+      "body": {
+        "message": "__MARKER__"
+      },
+      "expect": "200"
+    },
+    "evidence": "__MARKER__ in {body} or status 200 without X-API-Key header"
+  },
+  "pass": {
+    "mode": "assert"
+  },
+  "provenance": {
+    "from": "devkunaljadhav/cloudpilot-ai-aws-services web.py",
+    "scanner_seed": false,
+    "notes": "Source-confirmed candidate. --exec requires starting the app with API_KEY unset on 127.0.0.1:8000 (boto3 deps). Not yet runtime-verified."
+  }
+}
